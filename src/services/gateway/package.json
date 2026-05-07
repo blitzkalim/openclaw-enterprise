@@ -1,0 +1,14 @@
+{
+  "name": "@openclaw/gateway",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@openclaw/enterprise-shared": "workspace:*",
+    "argon2": "^0.43.0",
+    "hono": "^4.12.14",
+    "@hono/node-server": "^1.19.14",
+    "jose": "^6.0.10",
+    "ioredis": "^5.6.0"
+  }
+}

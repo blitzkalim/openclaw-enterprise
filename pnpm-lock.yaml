@@ -99,6 +99,9 @@ importers:
       jiti:
         specifier: ^2.6.1
         version: 2.6.1
+      jose:
+        specifier: ^6.0.10
+        version: 6.2.2
       json5:
         specifier: ^2.2.3
         version: 2.2.3
@@ -1534,6 +1537,27 @@ importers:
   packages/plugin-package-contract: {}
 
   packages/plugin-sdk: {}
+
+  src/services/gateway:
+    dependencies:
+      '@hono/node-server':
+        specifier: 1.19.14
+        version: 1.19.14(hono@4.12.14)
+      '@openclaw/enterprise-shared':
+        specifier: workspace:*
+        version: link:../shared
+      argon2:
+        specifier: ^0.43.0
+        version: 0.43.1
+      hono:
+        specifier: 4.12.14
+        version: 4.12.14
+      ioredis:
+        specifier: ^5.6.0
+        version: 5.10.1
+      jose:
+        specifier: ^6.0.10
+        version: 6.2.2
 
   src/services/shared:
     dependencies:

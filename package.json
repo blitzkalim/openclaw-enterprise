@@ -1693,6 +1693,7 @@
     "https-proxy-agent": "^9.0.0",
     "ipaddr.js": "^2.3.0",
     "jiti": "^2.6.1",
+    "jose": "^6.0.10",
     "json5": "^2.2.3",
     "jszip": "^3.10.1",
     "markdown-it": "14.1.1",
