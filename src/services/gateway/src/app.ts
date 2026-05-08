@@ -8,6 +8,7 @@ import channelRoutes from './channels/channel-routes.js';
 import adminChannelRoutes from './channels/admin-channel-routes.js';
 import secretRoutes from './secrets/secret-routes.js';
 import adminRoutes from './admin/admin-routes.js';
+import webRoutes from './web-routes.js';
 import { rateLimitMiddleware } from './rate-limit/rate-limit-middleware.js';
 import channelRouter from './channel-router.js';
 
@@ -35,6 +36,11 @@ app.use(rateLimitMiddleware);
  * Channel webhook routes — public (use HMAC verification internally).
  */
 app.route('/webhooks', channelRouter);
+
+/**
+ * Web routes (login, team page) — public (auth handled in route).
+ */
+app.route('/', webRoutes);
 
 /**
  * Auth routes — public (register, login, logout, profile).
