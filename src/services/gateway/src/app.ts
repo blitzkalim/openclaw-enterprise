@@ -7,6 +7,7 @@ import channelRoutes from './channels/channel-routes.js';
 import adminChannelRoutes from './channels/admin-channel-routes.js';
 import secretRoutes from './secrets/secret-routes.js';
 import adminRoutes from './admin/admin-routes.js';
+import { rateLimitMiddleware } from './rate-limit/rate-limit-middleware.js';
 
 const app = new Hono();
 
@@ -14,6 +15,11 @@ const app = new Hono();
  * Health check — always public.
  */
 app.get('/health', (c) => c.json({ status: 'ok', service: 'gateway' }, 200));
+
+/**
+ * Global rate limiter.
+ */
+app.use(rateLimitMiddleware);
 
 /**
  * Auth routes — public (register, login, logout, profile).

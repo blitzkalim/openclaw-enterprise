@@ -252,13 +252,23 @@ export async function findWorkspaceSecret(workspaceId: string, secretType: strin
   return (result.rows[0] as { encryptedVal: string; iv: string } | undefined) ?? null;
 }
 
-export async function loadAllWorkspaceSecrets(): Promise<{ workspaceId: string; secretType: string; encryptedVal: string; iv: string }[]> {
+export async function loadAllWorkspaceSecrets(): Promise<WorkspaceSecret[]> {
   const pool = getPool();
-  const result = await pool.query(
-    `SELECT workspace_id AS "workspaceId", secret_type AS "secretType",
-            encrypted_val AS "encryptedVal", iv FROM workspace_secrets`,
+  const result = await pool.query<WorkspaceSecret>(`SELECT workspace_id AS "workspaceId", secret_type AS "secretType", encrypted_val AS "encryptedVal", iv FROM workspace_secrets`);
+  return result.rows;
+}
+
+export async function logRateLimit(
+  ip: string,
+  method: string,
+  path: string,
+  blocked: boolean,
+): Promise<void> {
+  const pool = getPool();
+  await pool.query(
+    `INSERT INTO rate_limit_log (ip, method, path, blocked) VALUES ($1, $2, $3, $4)`,
+    [ip, method, path, blocked],
   );
-  return result.rows as { workspaceId: string; secretType: string; encryptedVal: string; iv: string }[];
 }
 
 /* ------------------------------------------------------------------ */
