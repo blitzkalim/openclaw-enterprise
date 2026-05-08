@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { User, UserSession, ApiToken, ChannelIdentity, ChannelClaim, TeamCtx, AgentJobPayload } from '../types/team-ctx.js';
+import type { User, UserSession, ApiToken, ChannelIdentity, ChannelClaim, TeamCtx, AgentJobPayload, StoredFile } from '../types/team-ctx.js';
 
 describe('types/team-ctx', () => {
   it('should satisfy User type shape', () => {
@@ -44,5 +44,19 @@ describe('types/team-ctx', () => {
       source: 'api-token',
     };
     expect(ctx.source).toBe('api-token');
+  });
+
+  it('should satisfy StoredFile type shape', () => {
+    const file: StoredFile = {
+      id: 'uuid-file-1',
+      userId: 'user-1',
+      name: 'report.pdf',
+      s3Key: 'users/user-1/1234567890-report.pdf',
+      mimeType: 'application/pdf',
+      size: 102400,
+      createdAt: new Date(),
+    };
+    expect(file.name).toBe('report.pdf');
+    expect(file.size).toBe(102400);
   });
 });

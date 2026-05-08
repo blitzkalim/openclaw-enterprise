@@ -1,5 +1,5 @@
 import { getPool } from './pool.js';
-import type { User, UserSession, ApiToken, ChannelIdentity, ChannelClaim } from '../types/team-ctx.js';
+import type { User, UserSession, ApiToken, ChannelIdentity, ChannelClaim, StoredFile } from '../types/team-ctx.js';
 
 /* ------------------------------------------------------------------ */
 /*  Users                                                              */
@@ -259,4 +259,48 @@ export async function loadAllWorkspaceSecrets(): Promise<{ workspaceId: string; 
             encrypted_val AS "encryptedVal", iv FROM workspace_secrets`,
   );
   return result.rows as { workspaceId: string; secretType: string; encryptedVal: string; iv: string }[];
+}
+
+/* ------------------------------------------------------------------ */
+/*  Files                                                              */
+/* ------------------------------------------------------------------ */
+
+export async function createFile(file: Omit<StoredFile, 'id' | 'createdAt'>): Promise<StoredFile> {
+  const pool = getPool();
+  const result = await pool.query(
+    `INSERT INTO files (user_id, name, s3_key, mime_type, size)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING id, user_id AS "userId", name, s3_key AS "s3Key", mime_type AS "mimeType", size, created_at AS "createdAt"`,
+    [file.userId, file.name, file.s3Key, file.mimeType, file.size],
+  );
+  return result.rows[0] as StoredFile;
+}
+
+export async function findFileById(id: string, userId: string): Promise<StoredFile | null> {
+  const pool = getPool();
+  const result = await pool.query(
+    `SELECT id, user_id AS "userId", name, s3_key AS "s3Key", mime_type AS "mimeType", size, created_at AS "createdAt"
+     FROM files WHERE id = $1 AND user_id = $2`,
+    [id, userId],
+  );
+  return (result.rows[0] as StoredFile | undefined) ?? null;
+}
+
+export async function listFilesByUser(userId: string): Promise<StoredFile[]> {
+  const pool = getPool();
+  const result = await pool.query(
+    `SELECT id, user_id AS "userId", name, s3_key AS "s3Key", mime_type AS "mimeType", size, created_at AS "createdAt"
+     FROM files WHERE user_id = $1 ORDER BY created_at DESC`,
+    [userId],
+  );
+  return result.rows as StoredFile[];
+}
+
+export async function deleteFile(id: string, userId: string): Promise<boolean> {
+  const pool = getPool();
+  const result = await pool.query(
+    `DELETE FROM files WHERE id = $1 AND user_id = $2`,
+    [id, userId],
+  );
+  return (result.rowCount ?? 0) > 0;
 }

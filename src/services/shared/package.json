@@ -8,7 +8,15 @@
       "types": "./src/db/index.ts",
       "default": "./src/db/index.ts"
     },
+    "./db/index.js": {
+      "types": "./src/db/index.ts",
+      "default": "./src/db/index.ts"
+    },
     "./db/migrate": {
+      "types": "./src/db/migrate.ts",
+      "default": "./src/db/migrate.ts"
+    },
+    "./db/migrate.js": {
       "types": "./src/db/migrate.ts",
       "default": "./src/db/migrate.ts"
     },
@@ -16,7 +24,15 @@
       "types": "./src/db/queries.ts",
       "default": "./src/db/queries.ts"
     },
+    "./db/queries.js": {
+      "types": "./src/db/queries.ts",
+      "default": "./src/db/queries.ts"
+    },
     "./redis": {
+      "types": "./src/redis/client.ts",
+      "default": "./src/redis/client.ts"
+    },
+    "./redis/client.js": {
       "types": "./src/redis/client.ts",
       "default": "./src/redis/client.ts"
     },
@@ -24,7 +40,15 @@
       "types": "./src/types/team-ctx.ts",
       "default": "./src/types/team-ctx.ts"
     },
+    "./types/team-ctx.js": {
+      "types": "./src/types/team-ctx.ts",
+      "default": "./src/types/team-ctx.ts"
+    },
     "./crypto": {
+      "types": "./src/crypto/secrets.ts",
+      "default": "./src/crypto/secrets.ts"
+    },
+    "./crypto/secrets.js": {
       "types": "./src/crypto/secrets.ts",
       "default": "./src/crypto/secrets.ts"
     },
@@ -32,7 +56,15 @@
       "types": "./src/config/env.ts",
       "default": "./src/config/env.ts"
     },
+    "./config/env.js": {
+      "types": "./src/config/env.ts",
+      "default": "./src/config/env.ts"
+    },
     "./s3": {
+      "types": "./src/s3/client.ts",
+      "default": "./src/s3/client.ts"
+    },
+    "./s3/client.js": {
       "types": "./src/s3/client.ts",
       "default": "./src/s3/client.ts"
     }

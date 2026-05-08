@@ -17,10 +17,28 @@ vi.mock('@openclaw/enterprise-shared/redis/client.js', () => ({
   }),
 }));
 
+let mockJwtPayload: Record<string, unknown> = {};
+
 vi.mock('jose', async () => {
   const actual = await vi.importActual<typeof import('jose')>('jose');
   return {
     ...actual,
+    importSPKI: vi.fn().mockResolvedValue({} as any),
+    importPKCS8: vi.fn().mockResolvedValue({} as any),
+    SignJWT: vi.fn().mockImplementation(function (payload: Record<string, unknown>) {
+      mockJwtPayload = payload;
+      return {
+        setProtectedHeader: vi.fn().mockReturnThis(),
+        setIssuedAt: vi.fn().mockReturnThis(),
+        setIssuer: vi.fn().mockReturnThis(),
+        setAudience: vi.fn().mockReturnThis(),
+        setExpirationTime: vi.fn().mockReturnThis(),
+        sign: vi.fn().mockResolvedValue('mock-jwt-token'),
+      };
+    }),
+    jwtVerify: vi.fn().mockImplementation(async () => ({
+      payload: mockJwtPayload,
+    })),
   };
 });
 

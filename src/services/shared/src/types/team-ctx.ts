@@ -102,3 +102,13 @@ export interface UserFiles {
   userMd: string | null;
   tasksMd: string | null;
 }
+
+export interface StoredFile {
+  id: string;
+  userId: string;
+  name: string;
+  s3Key: string;
+  mimeType: string;
+  size: number;
+  createdAt: Date;
+}
