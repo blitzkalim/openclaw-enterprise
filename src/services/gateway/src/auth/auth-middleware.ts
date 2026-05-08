@@ -1,5 +1,5 @@
 import { jwtVerify, importSPKI, importPKCS8, SignJWT } from 'jose';
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { findUserById, findApiTokenByHash, touchApiTokenLastUsed } from '@openclaw/enterprise-shared/db/queries.js';
 import { getRedis } from '@openclaw/enterprise-shared/redis/client.js';
 import type { TeamCtx } from '@openclaw/enterprise-shared/types/team-ctx.js';
@@ -42,7 +42,7 @@ async function verifyJwt(token: string): Promise<Record<string, unknown>> {
   const publicKey = await getPublicKey();
   const { payload } = await jwtVerify(token, publicKey, {
     issuer: JWT_ISSUER,
-    audience: JWT_ALGORITHM,
+    audience: JWT_AUDIENCE,
     clockTolerance: 60,
   });
   return payload as Record<string, unknown>;
@@ -145,7 +145,7 @@ export async function authMiddleware(c: any, next: () => Promise<void>): Promise
   if (!teamCtx && legacyMatch) {
     const legacyToken = legacyMatch[1]!;
     const expected = process.env.OPENCLAW_GATEWAY_TOKEN;
-    if (expected && legacyToken === expected) {
+    if (expected && timingSafeEqual(Buffer.from(legacyToken, 'utf8'), Buffer.from(expected, 'utf8'))) {
       // Legacy tokens are treated as a synthetic admin user with userId = 'legacy'
       teamCtx = {
         userId: 'legacy',

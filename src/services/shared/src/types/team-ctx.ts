@@ -93,6 +93,7 @@ export interface AgentReplyMessage {
   text: string;
   attachments?: AttachmentRef[];
   timestamp: string;
+  _sig?: string;
 }
 
 export interface UserFiles {

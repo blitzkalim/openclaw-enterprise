@@ -1,0 +1,73 @@
+replicaCount:
+  gateway: 2
+  agentWorker: 2
+
+image:
+  gateway:
+    repository: openclaw/gateway
+    tag: latest
+    pullPolicy: IfNotPresent
+  agentWorker:
+    repository: openclaw/agent-worker
+    tag: latest
+    pullPolicy: IfNotPresent
+
+gateway:
+  port: 3000
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+
+agentWorker:
+  concurrency: 5
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 1Gi
+
+hpa:
+  gateway:
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+  agentWorker:
+    minReplicas: 2
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+
+networkPolicies:
+  enabled: true
+
+env:
+  DATABASE_URL: ""
+  REDIS_URL: ""
+  S3_ENDPOINT: ""
+  AWS_ACCESS_KEY_ID: ""
+  AWS_SECRET_ACCESS_KEY: ""
+  AWS_REGION: "us-east-1"
+  OPENCLAW_S3_BUCKET: "openclaw"
+  OPENCLAW_QUEUE_SECRET: ""
+  OPENCLAW_COOKIE_SECRET: ""
+  OPENCLAW_SECRETS_KEY: ""
+  OPENCLAW_JWT_PRIVATE_KEY: ""
+  OPENCLAW_JWT_PUBLIC_KEY: ""
+  OPENCLAW_GATEWAY_TOKEN: ""
+  OPENCLAW_TEAM_ADMIN_EMAIL: "admin@openclaw.local"
+  OPENCLAW_TEAM_ADMIN_PASSWORD: ""
+  OPENCLAW_PUBLIC_BASE_URL: ""
+  OPENAI_API_KEY: ""
+  ANTHROPIC_API_KEY: ""
+  TELEGRAM_BOT_TOKEN: ""
+  TELEGRAM_WEBHOOK_SECRET: ""
+  WHATSAPP_ACCESS_TOKEN: ""
+  WHATSAPP_PHONE_NUMBER_ID: ""
+  WHATSAPP_APP_SECRET: ""
+  WHATSAPP_VERIFY_TOKEN: ""
+  NODE_ENV: "production"

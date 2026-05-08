@@ -21,9 +21,9 @@ export interface AgentStreamMessage {
 /**
  * Sign a message with HMAC-SHA256.
  */
-function signMessage(msg: AgentStreamMessage | AgentReplyMessage): string {
-  const payloadStr = JSON.stringify(msg);
-  return createHmac('sha256', QUEUE_SECRET).update(payloadStr).digest('hex');
+function signMessage(msg: AgentStreamMessage | (AgentReplyMessage & { _sig?: string })): string {
+  const { _sig, ...rest } = msg as Record<string, unknown>;
+  return createHmac('sha256', QUEUE_SECRET).update(JSON.stringify(rest)).digest('hex');
 }
 
 /**
@@ -66,7 +66,9 @@ export async function publishStreamDone(replyChannel: string): Promise<void> {
  * Publish the final agent reply to Redis Pub/Sub for channel delivery.
  */
 export async function publishReply(reply: AgentReplyMessage): Promise<void> {
-  const signedReply = { ...reply, _sig: signMessage(reply) };
+  // Sign the payload WITHOUT _sig field, then add it
+  const sig = createHmac('sha256', QUEUE_SECRET).update(JSON.stringify(reply)).digest('hex');
+  const signedReply = { ...reply, _sig: sig };
   const channel = `agent:reply:${reply.channel}:${reply.threadId}`;
   const redis = getRedis();
   await redis.publish(channel, JSON.stringify(signedReply));

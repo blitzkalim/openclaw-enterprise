@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-worker
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: agent-worker
+spec:
+  replicas: {{ .Values.replicaCount.agentWorker }}
+  selector:
+    matchLabels:
+      app: agent-worker
+  template:
+    metadata:
+      labels:
+        app: agent-worker
+    spec:
+      containers:
+        - name: agent-worker
+          image: "{{ .Values.image.agentWorker.repository }}:{{ .Values.image.agentWorker.tag }}"
+          imagePullPolicy: {{ .Values.image.agentWorker.pullPolicy }}
+          ports:
+            - containerPort: 9090
+          envFrom:
+            - configMapRef:
+                name: openclaw-config
+            - secretRef:
+                name: openclaw-secrets
+          resources:
+            {{- toYaml .Values.agentWorker.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9090
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3

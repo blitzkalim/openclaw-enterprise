@@ -5,6 +5,7 @@ import { hashPassword, verifyPassword } from './password.js';
 import { signJwt } from './auth-middleware.js';
 import type { TeamCtx } from '@openclaw/enterprise-shared/types/team-ctx.js';
 import { createHash, randomBytes } from 'node:crypto';
+import { checkLoginRateLimit } from '../rate-limit/rate-limit-middleware.js';
 
 const SESSION_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -54,6 +55,13 @@ app.post('/login', async (c) => {
     return c.json({ error: 'Missing email or password' }, 400);
   }
 
+  // Rate limit: 5 attempts per 15 min per IP+email, 10 per IP
+  const ip = c.req.header('x-forwarded-for') ?? c.req.header('x-real-ip') ?? 'unknown';
+  const rlResult = await checkLoginRateLimit(ip, body.email);
+  if (!rlResult.allowed) {
+    return c.json({ error: 'Too many login attempts. Please try again later.' }, 429);
+  }
+
   const user = await findUserByEmail(body.email);
   if (!user) {
     return c.json({ error: 'Invalid email or password' }, 401);
@@ -72,13 +80,13 @@ app.post('/login', async (c) => {
   const rawSession = randomBytes(32).toString('hex');
   const sessionHash = hashSessionToken(rawSession);
 
-  const ip = c.req.header('x-forwarded-for') ?? c.req.header('x-real-ip') ?? null;
+  const clientIp = c.req.header('x-forwarded-for') ?? c.req.header('x-real-ip') ?? null;
   const userAgent = c.req.header('user-agent') ?? null;
 
   const session = await createSession({
     userId: user.id,
     tokenHash: sessionHash,
-    ip,
+    ip: clientIp,
     userAgent,
     expiresAt: new Date(Date.now() + SESSION_MAX_AGE_MS),
     revokedAt: null,

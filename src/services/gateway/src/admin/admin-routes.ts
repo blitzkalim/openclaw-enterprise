@@ -70,10 +70,10 @@ app.post('/users/:id/status', async (c) => {
   }
 
   const id = c.req.param('id');
-  const body = await c.req.json<{ status: 'active' | 'suspended' }>();
+  const body = await c.req.json<{ status: 'active' | 'disabled' }>();
 
-  if (!body.status || !['active', 'suspended'].includes(body.status)) {
-    return c.json({ error: 'Invalid status' }, 400);
+  if (!body.status || !['active', 'disabled'].includes(body.status)) {
+    return c.json({ error: 'Invalid status. Must be "active" or "disabled".' }, 400);
   }
 
   if (id === team.userId) {

@@ -11,6 +11,7 @@ import adminRoutes from './admin/admin-routes.js';
 import webRoutes from './web-routes.js';
 import { rateLimitMiddleware } from './rate-limit/rate-limit-middleware.js';
 import channelRouter from './channel-router.js';
+import { csrfProtect } from './csrf.js';
 
 const app = new Hono();
 
@@ -50,13 +51,13 @@ app.route('/auth', authRoutes);
 /**
  * Team routes — protected (API tokens).
  */
-app.use('/team/*', authMiddleware, requireAuth);
+app.use('/team/*', authMiddleware, requireAuth, csrfProtect);
 app.route('/team', teamRoutes);
 
 /**
  * File routes — protected (upload, list, download, delete).
  */
-app.use('/files/*', authMiddleware, requireAuth);
+app.use('/files/*', authMiddleware, requireAuth, csrfProtect);
 app.route('/files', fileRoutes);
 
 /**
@@ -68,19 +69,19 @@ app.route('/channels', channelRoutes);
 /**
  * Admin channel routes — protected + admin only.
  */
-app.use('/admin/channels/*', authMiddleware, requireAuth, requireAdmin);
+app.use('/admin/channels/*', authMiddleware, requireAuth, requireAdmin, csrfProtect);
 app.route('/admin/channels', adminChannelRoutes);
 
 /**
  * Secret routes — protected + admin only.
  */
-app.use('/secrets/*', authMiddleware, requireAuth, requireAdmin);
+app.use('/secrets/*', authMiddleware, requireAuth, requireAdmin, csrfProtect);
 app.route('/secrets', secretRoutes);
 
 /**
  * Admin routes — protected + admin only.
  */
-app.use('/admin/*', authMiddleware, requireAuth, requireAdmin);
+app.use('/admin/*', authMiddleware, requireAuth, requireAdmin, csrfProtect);
 app.route('/admin', adminRoutes);
 
 /**

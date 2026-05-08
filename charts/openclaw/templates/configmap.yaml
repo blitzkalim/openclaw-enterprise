@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-config
+  namespace: {{ .Release.Namespace }}
+data:
+  NODE_ENV: {{ .Values.env.NODE_ENV | quote }}
+  AWS_REGION: {{ .Values.env.AWS_REGION | quote }}
+  OPENCLAW_S3_BUCKET: {{ .Values.env.OPENCLAW_S3_BUCKET | quote }}
+  OPENCLAW_TEAM_ADMIN_EMAIL: {{ .Values.env.OPENCLAW_TEAM_ADMIN_EMAIL | quote }}
+  OPENCLAW_PUBLIC_BASE_URL: {{ .Values.env.OPENCLAW_PUBLIC_BASE_URL | quote }}
+  GATEWAY_PORT: {{ .Values.gateway.port | quote }}
+  WORKER_CONCURRENCY: {{ .Values.agentWorker.concurrency | quote }}
+  OPENCLAW_TEAM_MODE: "1"
