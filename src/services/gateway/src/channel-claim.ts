@@ -45,6 +45,9 @@ export async function createClaimCode(userId: string, channel: 'whatsapp' | 'tel
     userId,
     channel,
     expiresAt,
+    externalId: '', // Not used for claim codes
+    mode: 'A',
+    workspaceId: null,
   });
   
   logger.info({ userId, channel, code }, 'Claim code created');
