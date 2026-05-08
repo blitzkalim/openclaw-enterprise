@@ -2,6 +2,10 @@ import { Worker } from 'bullmq';
 import pino from 'pino';
 import { getRedis } from '@openclaw/enterprise-shared/redis/client.js';
 import { headObject } from '@openclaw/enterprise-shared/s3/helpers.js';
+import { healthCheck } from './health.js';
+import { serve } from '@hono/node-server';
+import { Hono } from 'hono';
+import { validateEnv } from '@openclaw/enterprise-shared/config/env-validation.js';
 
 const logger = pino({ name: 'agent-worker' });
 
@@ -12,7 +16,9 @@ let worker: Worker | null = null;
  */
 async function main() {
   // Validate required env vars
-  const required = ['REDIS_URL', 'DATABASE_URL', 'OPENCLAW_S3_BUCKET', 'OPENCLAW_TEAM_MODE'];
+  validateEnv();
+
+  const required = ['REDIS_URL', 'DATABASE_URL', 'OPENCLAW_S3_BUCKET', 'OPENCLAW_QUEUE_SECRET'];
   const missing = required.filter((key) => !process.env[key]);
   if (missing.length > 0) {
     logger.error({ missing }, 'Missing required environment variables');
@@ -78,6 +84,24 @@ async function main() {
   });
 
   logger.info('Agent worker started');
+
+  // Start health check server on port 9090
+  const healthApp = new Hono();
+  healthApp.get('/health', async (c) => {
+    try {
+      const result = await healthCheck();
+      return c.json(result, 200);
+    } catch {
+      return c.json({ status: 'error', service: 'agent-worker' }, 503);
+    }
+  });
+
+  serve({
+    fetch: healthApp.fetch,
+    port: 9090,
+  });
+
+  logger.info('Health check server started on port 9090');
 
   // Graceful shutdown
   const shutdown = async () => {

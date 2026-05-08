@@ -1,0 +1,118 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: openclaw
+      POSTGRES_USER: openclaw
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-openclaw}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openclaw"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gateway:
+    build:
+      context: ./src/services/gateway
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgres://openclaw:${POSTGRES_PASSWORD:-openclaw}@postgres:5432/openclaw
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      AWS_REGION: us-east-1
+      OPENCLAW_S3_BUCKET: openclaw
+      OPENCLAW_QUEUE_SECRET: ${OPENCLAW_QUEUE_SECRET:-dev-secret}
+      OPENCLAW_COOKIE_SECRET: ${OPENCLAW_COOKIE_SECRET:-dev-secret}
+      OPENCLAW_SECRETS_KEY: ${OPENCLAW_SECRETS_KEY:-dev-secrets-key-32-chars}
+      OPENCLAW_JWT_PRIVATE_KEY: ${OPENCLAW_JWT_PRIVATE_KEY}
+      OPENCLAW_JWT_PUBLIC_KEY: ${OPENCLAW_JWT_PUBLIC_KEY}
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
+      OPENCLAW_TEAM_ADMIN_EMAIL: ${OPENCLAW_TEAM_ADMIN_EMAIL:-admin@openclaw.local}
+      OPENCLAW_TEAM_ADMIN_PASSWORD: ${OPENCLAW_TEAM_ADMIN_PASSWORD:-admin}
+      OPENCLAW_PUBLIC_BASE_URL: ${OPENCLAW_PUBLIC_BASE_URL:-http://localhost:3000}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID}
+      GATEWAY_PORT: 3000
+      WORKER_CONCURRENCY: 5
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  agent-worker:
+    build:
+      context: ./src/services/agent-worker
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgres://openclaw:${POSTGRES_PASSWORD:-openclaw}@postgres:5432/openclaw
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      AWS_REGION: us-east-1
+      OPENCLAW_S3_BUCKET: openclaw
+      OPENCLAW_QUEUE_SECRET: ${OPENCLAW_QUEUE_SECRET:-dev-secret}
+      OPENCLAW_TEAM_MODE: 1
+      WORKER_CONCURRENCY: 5
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  minio_data:
