@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { getObject, putObject, headObject, copyObject } from '@openclaw/enterprise-shared/s3/helpers.js';
 import { validateS3Key } from './secure-fs-s3.js';
 
-export interface UserFiles {
+export interface ResolvedUserFiles {
   soulPath: string;
   agentsPath: string;
   memoryPath: string;
@@ -19,7 +19,7 @@ export interface UserFiles {
  * Resolves user overlay files from S3 to local scratch directory.
  * Seeds from base/ on first access.
  */
-export async function resolveUserFiles(userId: string): Promise<UserFiles> {
+export async function resolveUserFiles(userId: string): Promise<ResolvedUserFiles> {
   const scratchDir = `/tmp/agent-scratch/${userId}`;
   const tmpDir = `${scratchDir}/tmp`;
 
