@@ -4,3 +4,4 @@ export * from './crypto/secrets.js';
 export * from './types/team-ctx.js';
 export * from './config/env.js';
 export * from './s3/client.js';
+export * from './s3/helpers.js';

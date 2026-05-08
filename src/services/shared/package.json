@@ -67,6 +67,14 @@
     "./s3/client.js": {
       "types": "./src/s3/client.ts",
       "default": "./src/s3/client.ts"
+    },
+    "./s3/helpers": {
+      "types": "./src/s3/helpers.ts",
+      "default": "./src/s3/helpers.ts"
+    },
+    "./s3/helpers.js": {
+      "types": "./src/s3/helpers.ts",
+      "default": "./src/s3/helpers.ts"
     }
   },
   "dependencies": {
