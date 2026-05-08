@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { authMiddleware, requireAuth, requireAdmin } from './auth/auth-middleware.js';
+import { getJwks } from './auth/jwks.js';
 import authRoutes from './auth/auth-routes.js';
 import teamRoutes from './team/team-routes.js';
 import fileRoutes from './files/file-routes.js';
@@ -15,6 +16,14 @@ const app = new Hono();
  * Health check — always public.
  */
 app.get('/health', (c) => c.json({ status: 'ok', service: 'gateway' }, 200));
+
+/**
+ * JWKS endpoint — always public (for JWT signature verification).
+ */
+app.get('/.well-known/jwks.json', async (c) => {
+  const jwks = await getJwks();
+  return c.json(jwks, 200);
+});
 
 /**
  * Global rate limiter.
