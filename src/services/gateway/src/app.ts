@@ -9,6 +9,7 @@ import adminChannelRoutes from './channels/admin-channel-routes.js';
 import secretRoutes from './secrets/secret-routes.js';
 import adminRoutes from './admin/admin-routes.js';
 import { rateLimitMiddleware } from './rate-limit/rate-limit-middleware.js';
+import channelRouter from './channel-router.js';
 
 const app = new Hono();
 
@@ -29,6 +30,11 @@ app.get('/.well-known/jwks.json', async (c) => {
  * Global rate limiter.
  */
 app.use(rateLimitMiddleware);
+
+/**
+ * Channel webhook routes — public (use HMAC verification internally).
+ */
+app.route('/webhooks', channelRouter);
 
 /**
  * Auth routes — public (register, login, logout, profile).

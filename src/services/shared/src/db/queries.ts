@@ -214,6 +214,18 @@ export async function findChannelClaimByCode(claimCode: string): Promise<Channel
   return (result.rows[0] as ChannelClaim | undefined) ?? null;
 }
 
+export async function findChannelClaim(claimCode: string): Promise<ChannelClaim | null> {
+  return findChannelClaimByCode(claimCode);
+}
+
+export async function consumeChannelClaim(claimCode: string): Promise<void> {
+  const pool = getPool();
+  await pool.query(
+    `UPDATE channel_claims SET consumed_at = NOW() WHERE claim_code = $1`,
+    [claimCode],
+  );
+}
+
 export async function claimChannelClaim(claimId: string, userId: string): Promise<void> {
   const pool = getPool();
   await pool.query(
@@ -252,9 +264,11 @@ export async function findWorkspaceSecret(workspaceId: string, secretType: strin
   return (result.rows[0] as { encryptedVal: string; iv: string } | undefined) ?? null;
 }
 
-export async function loadAllWorkspaceSecrets(): Promise<WorkspaceSecret[]> {
+export async function loadAllWorkspaceSecrets(): Promise<{ workspaceId: string; secretType: string; encryptedVal: string; iv: string }[]> {
   const pool = getPool();
-  const result = await pool.query<WorkspaceSecret>(`SELECT workspace_id AS "workspaceId", secret_type AS "secretType", encrypted_val AS "encryptedVal", iv FROM workspace_secrets`);
+  const result = await pool.query(
+    `SELECT workspace_id AS "workspaceId", secret_type AS "secretType", encrypted_val AS "encryptedVal", iv FROM workspace_secrets`
+  );
   return result.rows;
 }
 
