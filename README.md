@@ -241,7 +241,151 @@ pnpm ui:build
 
 Note: `pnpm openclaw ...` runs TypeScript directly (via `tsx`). `pnpm build` produces `dist/` for running via Node / the packaged `openclaw` binary, while `pnpm gateway:watch` rebuilds the runtime on demand during the dev loop.
 
-## Development channels
+## Enterprise Deployment
+
+OpenClaw Enterprise provides a production-ready deployment infrastructure with multi-user support, RBAC, and scalable architecture.
+
+### Architecture Overview
+
+```
+┌─────────────┐         ┌──────────────┐         ┌─────────────┐
+│   Gateway   │         │    MinIO     │         │Agent Worker │
+│   Service   │◄──────►│   Storage    │◄──────►│   Service    │
+│  Port 3000  │         │  Port 9000   │         │  Port 9090  │
+└─────────────┘         └──────────────┘         └─────────────┘
+     ▲                        ▲                        ▲
+     │                        │                        │
+     └────────────────────────┼────────────────────────┘
+                              │
+                    ┌─────────┴─────────┐
+                    │   PostgreSQL      │
+                    │   Port 5432       │
+                    └───────────────────┘
+                    ┌───────────────────┐
+                    │     Redis         │
+                    │   Port 6379       │
+                    └───────────────────┘
+```
+
+### Infrastructure Components
+
+**Core Services:**
+- **Gateway Service** (Port 3000): API server, authentication, file upload/download
+- **Agent Worker Service** (Port 9090): Agent execution, file processing, conversation management
+
+**Data Storage:**
+- **PostgreSQL** (Port 5432): User data, file metadata, authentication, RBAC
+- **Redis** (Port 6379): Queue management, caching, session state
+- **MinIO** (Port 9000): S3-compatible object storage for files, attachments, agent memory
+
+### Storage Architecture
+
+**MinIO provides cross-service file storage:**
+- Gateway uploads files → MinIO stores them
+- Agent Worker processes files → MinIO serves them
+- Both services access the same storage independently
+- Enables multi-machine deployment and scaling
+
+**Storage Features:**
+- User file isolation with security validation
+- WhatsApp/Telegram attachment handling
+- Agent memory persistence (MEMORY.md, AGENTS.md, etc.)
+- Conversation transcripts and execution logs
+- File seeding from base templates
+
+### Quick Enterprise Setup
+
+**Using Docker Compose:**
+```bash
+# Clone and setup
+git clone https://github.com/openclaw/openclaw.git
+cd openclaw
+
+# Copy environment file
+cp .env.example .env
+
+# Configure environment variables
+# Set OPENCLAW_QUEUE_SECRET, OPENCLAW_COOKIE_SECRET, OPENCLAW_SECRETS_KEY
+# Set OPENCLAW_JWT_PRIVATE_KEY, OPENCLAW_JWT_PUBLIC_KEY
+# Set OPENCLAW_GATEWAY_TOKEN, DATABASE_URL, REDIS_URL, S3_ENDPOINT
+
+# Start infrastructure
+docker-compose -f docker-compose.enterprise.yml up -d postgres redis minio
+
+# Build and start services
+pnpm build
+docker-compose -f docker-compose.enterprise.yml up -d gateway agent-worker
+```
+
+**Windows Setup:**
+See [Windows Setup Guide](kalim/windows-setup/WINDOWS-SETUP.md) for detailed Windows-specific deployment instructions.
+
+### Storage Alternatives
+
+**MinIO is recommended** for production deployments due to:
+- Cross-service access (Gateway + Agent Worker)
+- Multi-machine deployment capability
+- S3 API compatibility
+- Built-in redundancy and scalability
+- Web management console (Port 9001)
+
+**Local filesystem storage** is possible but has limitations:
+- Single-machine deployment only
+- No cross-service file sharing
+- Limited scalability
+- No distributed access
+- Requires adapter implementation
+
+### Key Features
+
+**Multi-User Support:**
+- User registration and authentication
+- Role-based access control (RBAC)
+- Admin and regular user roles
+- User-specific file isolation
+
+**File Operations:**
+- Upload/download via API
+- WhatsApp/Telegram attachment processing
+- Agent file overlays (SOUL.md, AGENTS.md, MEMORY.md, USER.md, TASKS.md)
+- Memory management with append mode and caps
+
+**Security:**
+- JWT authentication
+- CSRF protection
+- Rate limiting
+- HMAC webhook verification
+- Path traversal prevention
+
+### Environment Configuration
+
+**Required Variables:**
+```bash
+# Security
+OPENCLAW_QUEUE_SECRET=32-char-random-secret
+OPENCLAW_COOKIE_SECRET=32-char-random-secret
+OPENCLAW_SECRETS_KEY=32-char-random-secret
+OPENCLAW_JWT_PRIVATE_KEY=[RSA-2048 private key]
+OPENCLAW_JWT_PUBLIC_KEY=[RSA-2048 public key]
+OPENCLAW_GATEWAY_TOKEN=32-char-gateway-token
+
+# Database
+DATABASE_URL=postgres://openclaw:openclaw@localhost:5432/openclaw
+REDIS_URL=redis://localhost:6379
+
+# Storage
+S3_ENDPOINT=http://minio:9000
+AWS_ACCESS_KEY_ID=minioadmin
+AWS_SECRET_ACCESS_KEY=minioadmin
+OPENCLAW_S3_BUCKET=openclaw
+
+# Administration
+OPENCLAW_TEAM_ADMIN_EMAIL=admin@openclaw.local
+OPENCLAW_TEAM_ADMIN_PASSWORD=admin123
+OPENCLAW_PUBLIC_BASE_URL=http://localhost:3000
+```
+
+### Development Channels
 
 - **stable**: tagged releases (`vYYYY.M.D` or `vYYYY.M.D-<patch>`), npm dist-tag `latest`.
 - **beta**: prerelease tags (`vYYYY.M.D-beta.N`), npm dist-tag `beta` (macOS app may be missing).
