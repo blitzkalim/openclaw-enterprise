@@ -437,6 +437,8 @@ Special thanks to [Mario Zechner](https://mariozechner.at/) for his support and 
 [pi-mono](https://github.com/badlogic/pi-mono).
 Special thanks to Adam Doppelt for the lobster.bot domain.
 
+Enterprise Docker Compose deployment created by **Kalim** and **Zishan**.
+
 Thanks to all clawtributors:
 
 <!-- clawtributors:start -->
